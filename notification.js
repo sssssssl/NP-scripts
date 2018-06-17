@@ -49,8 +49,8 @@
 	mainLoop();
 
 	function mainLoop() {
+		app();
 		setTimeout(function () {
-			app();
 			if (!g.stopLoop) {
 				mainLoop();
 			}
