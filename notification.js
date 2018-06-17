@@ -296,19 +296,20 @@
 
 	function addSpinEffect() {
 		$('head').append('<style>#btn-my-post ' +
-			'{display: inline-block;color:#BBBBBB;' +
-			'animation:myfirst 2s;animation-iteration-count:infinite;}' +
-			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;' +
-			'@keyframes myfirst' +
+			'{display: inline-block; font-weight:bold;' +
+			'animation:myfirst 2s;animation-iteration-count:infinite;' +
+			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;}' +
+			'@keyframes myfirst {' +
 			'0% { transform: rotate(0deg); }'+
 			'25% { transform: rotate(45deg); }'+
 			'50% { transform: rotate(-45deg); }'+
-			'100% { transform: rotate(0deg); }'+
-			'@-webkit-keyframes myfirst' +
+			'100% { transform: rotate(0deg); }}'+
+			'@-webkit-keyframes myfirst {' +
 			'0% { transform: rotate(0deg); }'+
 			'25% { transform: rotate(45deg); }'+
 			'50% { transform: rotate(-45deg); }'+
-			'100% { transform: rotate(0deg); }'+
+			'100% { transform: rotate(0deg); }}'+
+			'#btn-my-post > a {color:#FF00FF}' +
 			'</style>'
 		);
 	}
