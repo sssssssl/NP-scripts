@@ -11,20 +11,20 @@
 // @grant        GM_deleteValue
 // ==/UserScript==
 
-(function() {
-    'use strict';
+(function () {
+	'use strict';
 
-    // Your code here...
+	// Your code here...
 
 	var lastUpdateMappingTimeKey = 'lastUpdateMappingTime';
 	var unACKTimeKey = 'lastUnACKTime';
 	var unACKDataKey = 'unACKData';
 	var mappingKey = 'tidCommentMap';
 	// this needs to be tested.
-	var pullInterval = 1000 * 60 * 0.5;
+	var pullInterval = 1000 * 60 * 0.25;
 	var maxUnACKAge = 1000 * 10 * 1;
 	var checkInterval = 1000 * 5 * 1;
-	var maxRetry = 1;
+	var maxRetry = 3;
 	var debug = true;
 
 
@@ -43,12 +43,13 @@
 		getPostStatus(true);
 	}
 
+	addStopBlinkCallback();
 	mainLoop();
 
 	function mainLoop() {
 		setTimeout(function () {
 			// 先等 5s
-			if(!stopLoop) {
+			if (!stopLoop) {
 				app();
 				mainLoop();
 			}
@@ -96,7 +97,7 @@
 			GM_setValue(lastUpdateMappingTimeKey, Date.now());
 
 			function getPostURL(debug) {
-				if(debug) {
+				if (debug) {
 					return 'posts';
 				}
 				else {
@@ -130,7 +131,7 @@
 				},
 				error: function (data) {
 					retry += 1;
-					if(retry == maxRetry) {
+					if (retry == maxRetry) {
 						stopLoop = true;
 						console.log('网络似乎有问题，停止拉取评论');
 					}
@@ -142,7 +143,7 @@
 	}
 
 	function getCompareFunc(debug) {
-		if(debug) {
+		if (debug) {
 			return testCompare;
 		}
 		else {
@@ -163,7 +164,7 @@
 		};
 
 		var data = JSON.parse(s);
-		for(var tid in data) {
+		for (var tid in data) {
 			var num = parseInt(data[tid]);
 			if (!(tid in mapping) || (mapping[tid] < num)) {
 
@@ -233,9 +234,6 @@
 
 	function updateMapping(diffInfo) {
 		var diffMap = diffInfo.diffMap;
-		// log_debug(['from updateMapping',
-			// 'diffMap:', diffMap, 'diffInfo', diffInfo]);
-		// log_debug(['from updateMapping', diffMap]);
 		var mapping = GM_getValue(mappingKey);
 		if (!mapping) {
 			mapping = diffMap;
@@ -256,18 +254,43 @@
 	}
 
 	// 给【我的主题】按钮添加停止闪烁的回调函数，每个页面只要做一次就行了
-	function addStopBlinkCallback(diffInfo) {
-		var myPostButton = $('#infobox').find('.link5')[0];	
+	function addStopBlinkCallback() {
+		var myPostButton = $('#infobox').find('.link5')[0];
 		$(myPostButton).wrap('<span></span>');
 		var span = $(myPostButton).parent()[0];
+		$(span).attr('id', 'btn-my-post');
+		addSpinEffect();
 		// enforce event capture, disable event bubbling.
 		span.addEventListener('click', function (e) {
-			updateMapping(diffInfo);
+			var unACKData = GM_getValue(unACKDataKey);
+			if(unACKData) {
+				updateMapping(unACKData);
+			}
 			stopNotification = true;
 		}, true);
 	}
 
+	function addSpinEffect() {
+		$('head').append('<style>#btn-my-post ' +
+			'{display: inline-block;color:#BBBBBB;' +
+			'animation:myfirst 2s;animation-iteration-count:infinite;}' +
+			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;' +
+			'@keyframes myfirst' +
+			'{from {color:#BBBBBB; transform: :rotate(0deg);}' +
+			'to {color:#C70039;font-weight:bold; transform:rotate(360deg);}}' +
+			'@-webkit-keyframes myfirst' +
+			'{from {color:#BBBBBB; transform: :rotate(0deg);}' +
+			'to {color:#C70039;font-weight:bold; transform:rotate(360deg);}}</style>'
+		);
+	}
+
 	function sendNotification(diffInfo, initNotification) {
+
+		log_debug([
+			'from sendNotification',
+			'stopNofitication:' + stopNotification,
+			'initNotification: ' + initNotification,
+		]);
 
 		var nNewComment = diffInfo.nNewComment;
 		if (!nNewComment) {
@@ -285,8 +308,8 @@
 
 		function updateStyle(index) {
 			document.title = title_list[index];
-			$(myPostButton).css('color', color_list[index]);
-			$(myPostButton).css('font-weight', fw_list[index]);
+			// $(myPostButton).css('color', color_list[index]);
+			// $(myPostButton).css('font-weight', fw_list[index]);
 		}
 
 		var index = 0;
@@ -304,8 +327,7 @@
 			}, 1000);
 		};
 
-		if(initNotification) {
-			addStopBlinkCallback(diffInfo);
+		if (initNotification) {
 			blink();
 			initNotification = false;
 		}
