@@ -1,30 +1,37 @@
-var lastPullTimeKey = 'lastPullTime';
+var lastUpdateMappingTimeKey = 'lastUpdateMappingTime';
 var unACKTimeKey = 'lastUnACKTime';
 var unACKDataKey = 'unACKData';
-var mapKey = 'tidCommentMap';
-var pullInterval = 1000 * 60 * 1;
-var maxUnACKAge = 1000 * 60 * 0.5;
+var mappingKey = 'tidCommentMap';
+// this needs to be tested.
+var pullInterval = 1000 * 60 * 3;
+var maxUnACKAge = 1000 * 10 * 1;
+var checkInterval = 1000 * 5 * 1;
 
 var debug = true;
 
-var lastPullTime = GM_getValue(lastPullTimeKey);
+var stopNotification = true;
+
+var lastPullTime = GM_getValue(lastUpdateMappingTimeKey);
 // 第一次在用户机器上运行
 if (!lastPullTime) {
 	getPostStatus(true);
 }
 
-main_loop();
+mainLoop();
 
-function main_loop() {
+function mainLoop() {
 	setTimeout(function () {
+		// 先等 5s
 		app();
-		main_loop();
-	}, pullInterval);
+		mainLoop();
+	}, checkInterval);
 }
 
 function app() {
 	var unACKData = GM_getValue(unACKDataKey);
 	if (unACKData) {
+		log_debug('存在未合并数据');
+
 		var lastUnACKTime = GM_getValue(unACKTimeKey);
 		var now = Date.now()
 		// 过了很久还不点确认，人家不想提醒你了！
@@ -33,7 +40,10 @@ function app() {
 		}
 		// 刚生成数据，提醒。
 		else {
-			notificate(unACKData);
+			if (stopNotification) {
+				stopNotification = false;
+				sendNotification(unACKData);
+			}
 		}
 	}
 	else {
@@ -45,7 +55,7 @@ function getPostStatus(first = false) {
 
 	function timeCheck() {
 		var now = Date.now();
-		var lastPullTime = GM_getValue(lastPullTimeKey);
+		var lastPullTime = GM_getValue(lastUpdateMappingTimeKey);
 		if (lastPullTime) {
 			var dtime = (now - lastPullTime);
 			console.log('距离上次拉取评论 ' + (dtime / 1000) + ' 秒');
@@ -57,36 +67,23 @@ function getPostStatus(first = false) {
 
 	if (needUpdate) {
 
-		GM_setValue(lastPullTimeKey, Date.now());
-
-		var mapping = GM_getValue(mapKey);
-
-		if (!mapping) {
-			mapping = {};
-		}
-
-		// console.log(mapping);
-
 		var myPostURL = 'u.php?action-topic.html';
 
 		$.ajax({
 			url: myPostURL,
 			type: 'GET',
 			success: function (data) {
-				var diffInfo = compareMapping(mapping, data);
+				var diffInfo = compareMapping(data);
 				if (diffInfo.nNewComment > 0) {
 					if (first) {
 						console.log('首次执行.');
 						updateMapping(diffInfo);
 					}
 					else {
-						if(debug) {
-							console.log('写入 unACKData:');
-							console.log(diffInfo);
-						}
+						log_debug(['写入 unACKData:', diffInfo]);
 						GM_setValue(unACKDataKey, diffInfo);
 						GM_setValue(unACKTimeKey, Date.now());
-						notificate(diffInfo);
+						sendNotification(diffInfo);
 					}
 				}
 				else {
@@ -103,10 +100,16 @@ function getPostStatus(first = false) {
 
 
 // 比较拉取到的评论数与本地保存的评论数的区别
-function compareMapping(mapping, data) {
-	var diffInfo = {};
-	diffInfo['nNewComment'] = 0;
-	diffInfo['diffMap'] = {};
+function compareMapping(data) {
+	var mapping = GM_getValue(mappingKey);
+	if (!mapping) {
+		mapping = {};
+	}
+
+	var diffInfo = {
+		nNewComment: 0,
+		diffMap: {}
+	};
 
 	var pat = /read.php\?tid-(\d+).html.+?回复:(\d+)/g;
 	var m;
@@ -127,17 +130,19 @@ function compareMapping(mapping, data) {
 		}
 	}
 	// debug
-	if(diffInfo.nNewComment > 0 && debug) {
-		console.log('from compareMapping:');
-		console.log('有 ' + diffInfo.nNewComment + ' 条新评论.');
-		console.log(diffInfo.diffMap);
+	if (diffInfo.nNewComment > 0) {
+		log_debug([
+			'from compareMapping:',
+			'有 ' + diffInfo.nNewComment + ' 条新评论.',
+			diffInfo.diffMap,
+		]);
 	}
 	return diffInfo;
 }
 
 function updateMapping(diffInfo) {
 	var diffMap = diffInfo.diffMap;
-	var mapping = GM_getValue(mapKey);
+	var mapping = GM_getValue(mappingKey);
 	if (!mapping) {
 		mapping = diffMap;
 	}
@@ -146,52 +151,56 @@ function updateMapping(diffInfo) {
 			mapping[t] = diffMap[t];
 		}
 	}
-	if(debug) {
-		console.log('from updateMapping');
-		console.log('写入 mapping:');
-		console.log(mapping);
-	}
-	GM_setValue(mapKey, mapping);
+	log_debug([
+		'from updateMapping',
+		'写入 mapping:',
+		mapping,
+	]);
+	GM_setValue(mappingKey, mapping);
+	GM_setValue(lastUpdateMappingTimeKey, Date.now());
 	GM_setValue(unACKDataKey, null);
 	GM_setValue(unACKTimeKey, null);
 }
 
-function notificate(diffInfo) {
+function sendNotification(diffInfo) {
 
 	var nNewComment = diffInfo.nNewComment;
 	if (!nNewComment) {
 		return;
 	}
 
-
 	var title = document.title;
 	var title_blk = "【新回复 x " + nNewComment + "】" + title;
+
 	var title_list = [title, title_blk];
+	var color_list = ['#BBBBBB', '#FF5733'];
+	var fw_list = ['normal', 'bold'];
 
-	var color_list = ['#FF5733', '#BBBBBB'];
-
-	var myPostButton = $('#unACKInfobox').find('.link5')[0];
+	var myPostButton = $('#infobox').find('.link5')[0];
 	$(myPostButton).text('我的主题( ' + nNewComment + ' 条新回复)');
-	$(myPostButton).css('font-weight', 'bold');
 	$(myPostButton).wrap('<span></span>');
 
 	var span = $(myPostButton).parent()[0];
+	// enforce event capture, disable event bubbling.
 	span.addEventListener('click', function (e) {
 		updateMapping(diffInfo);
-		stop = true;
+		stopNotification = true;
 	}, true);
 
-	var stop = true;
 	var index = 0;
+
+	function updateStyle(index) {
+		document.title = title_list[index];
+		$(myPostButton).css('color', color_list[index]);
+		$(myPostButton).css('font-weight', fw_list[index]);
+	}
 
 	function blink() {
 		setTimeout(function () {
 			index = 1 - index;
-			document.title = title_list[index];
-			$(myPostButton).css('color', color_list[index]);
-			if (stop) {
-				document.title = title;
-				$(myPostButton).css('color', color_list[0]);
+			updateStyle(index);
+			if (stopNotification) {
+				updateStyle(0);
 			}
 			else {
 				blink();
@@ -203,8 +212,26 @@ function notificate(diffInfo) {
 }
 
 function clearData() {
-	var keys = [lastPullTimeKey, unACKTimeKey, unACKDataKey, mapKey];
-	keys.forEach(function(k) {
-		GM_setValue(k, null);
+	var keys = [
+		lastUpdateMappingTimeKey,
+		unACKTimeKey,
+		unACKDataKey,
+		mappingKey
+	];
+	keys.forEach(function (k) {
+		GM_deleteValue(k);
 	});
+}
+
+function log_debug(sl) {
+	if (debug) {
+		if (sl.constructor === String) {
+			console.log(sl);
+		}
+		else if (sl.constructor === Array) {
+			sl.forEach(function (s) {
+				console.log(s);
+			});
+		}
+	}
 }
