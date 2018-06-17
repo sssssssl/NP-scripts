@@ -17,7 +17,7 @@
 
 	// Your code here...
 
-	var lastPullTimeKey = 'lastPullTimeKey';
+	var lastPullTimeKey = 'lastPullTime';
 	var unACKTimeKey = 'lastUnACKTime';
 	var unACKDataKey = 'unACKData';
 	var mappingKey = 'tidCommentMap';
@@ -31,7 +31,7 @@
 
 	var g = {
 		stopNofitication: false,
-		initNotification: true,
+		firstSetUp: true,
 		stopLoop: false,
 		retry: 0,
 		has_mypost_btn: false,
@@ -64,19 +64,14 @@
 		if (unACKData) {
 			log_debug(['存在未合并数据', unACKData]);
 
-			g.checkInterval = checkInterval;
-			g.pullInterval = pullInterval;
+			g.stopNotification = false;
+			sendNotification(unACKData);
 
 			var lastUnACKTime = GM_getValue(unACKTimeKey);
 			var now = Date.now()
-			// 过了很久还不点确认，人家不想提醒你了！
+			// 当未确认数据寿命达到允许的最大值，进行合并
 			if (lastUnACKTime && (now - lastUnACKTime) > maxUnACKAge) {
 				updateMapping(unACKData);
-			}
-			// 刚生成数据，提醒。
-			else {
-				g.stopNotification = false;
-				sendNotification(unACKData);
 			}
 		}
 		else {
@@ -116,13 +111,7 @@
 			GM_setValue(lastPullTimeKey, Date.now());
 
 			function getPostURL(debug) {
-				// if (debug) {
-				// 	return 'posts';
-				// }
-				// else {
 				return 'u.php?action-topic.html';
-				// }
-
 			}
 
 			var myPostURL = getPostURL(debug);
@@ -131,7 +120,7 @@
 				url: myPostURL,
 				type: 'GET',
 				success: function (data) {
-					var diffInfo = getCompareFunc(debug)(data);
+					var diffInfo = compareMapping(data);
 					if (diffInfo.nNewComment > 0) {
 						if (first) {
 							console.log('首次执行.');
@@ -141,7 +130,6 @@
 							log_debug(['写入 unACKData:', diffInfo]);
 							GM_setValue(unACKDataKey, diffInfo);
 							GM_setValue(unACKTimeKey, Date.now());
-							g.initNotification = true;
 							sendNotification(diffInfo);
 						}
 					}
@@ -160,54 +148,6 @@
 			});
 
 		}
-	}
-
-	function getCompareFunc(debug) {
-		// if (debug) {
-		// 	return testCompare;
-		// }
-		// else {
-		return compareMapping;
-		// }
-	}
-
-
-	function testCompare(s) {
-		var mapping = GM_getValue(mappingKey);
-		if (!mapping) {
-			mapping = {};
-		}
-
-		var diffInfo = {
-			nNewComment: 0,
-			diffMap: {}
-		};
-
-		var data = JSON.parse(s);
-		for (var tid in data) {
-			var num = parseInt(data[tid]);
-			if (!(tid in mapping) || (mapping[tid] < num)) {
-
-				diffInfo.diffMap[tid] = num;
-				// new post
-				if (!(tid in mapping)) {
-					diffInfo.nNewComment += num;
-				}
-				// old post, new comment
-				else {
-					diffInfo.nNewComment += num - mapping[tid];
-				}
-			}
-		}
-		// debug
-		if (diffInfo.nNewComment > 0) {
-			log_debug([
-				'from compareMapping:',
-				'有 ' + diffInfo.nNewComment + ' 条新评论.',
-				diffInfo.diffMap,
-			]);
-		}
-		return diffInfo;
 	}
 
 
@@ -263,19 +203,21 @@
 				mapping[t] = diffMap[t];
 			}
 		}
+		GM_setValue(mappingKey, mapping);
+		GM_setValue(unACKDataKey, null);
+		GM_setValue(unACKTimeKey, null);
+
 		log_debug([
 			'from updateMapping',
 			'写入 mapping:',
 			mapping,
 		]);
-		GM_setValue(mappingKey, mapping);
-		GM_setValue(unACKDataKey, null);
-		GM_setValue(unACKTimeKey, null);
 	}
 
 	// 给【我的主题】按钮添加停止闪烁的回调函数，每个页面只要做一次就行了
 	function addStopBlinkCallback() {
 		var myPostButton = $('#infobox').find('.link5')[0];
+		// 有些页面没有这个按钮，不需要更新 UI。
 		if (!myPostButton) {
 			g.has_mypost_btn = false;
 			return;
@@ -325,7 +267,7 @@
 		log_debug([
 			'from sendNotification',
 			'stopNofitication:' + g.stopNofitication,
-			'initNotification: ' + g.initNotification,
+			'firstSetUp: ' + g.firstSetUp,
 		]);
 
 		var nNewComment = diffInfo.nNewComment;
@@ -336,7 +278,6 @@
 		var title_blk = "【新回复 x " + nNewComment + "】" + originalTitle;
 
 		var title_list = [originalTitle, title_blk];
-		var color_list = ['#BBBBBB', '#FF5733'];
 		var fw_list = ['normal', 'bold'];
 
 		var myPostButton = $('#infobox').find('.link5')[0];
@@ -344,8 +285,6 @@
 
 		function updateStyle(index) {
 			document.title = title_list[index];
-			// $(myPostButton).css('color', color_list[index]);
-			// $(myPostButton).css('font-weight', fw_list[index]);
 		}
 
 		var nl = {
@@ -366,27 +305,14 @@
 			}, 1000);
 		};
 
-		if (g.initNotification) {
+		if (g.firstSetUp) {
 
-			g.initNotification = false;
-			g.stopNofitication = false;
+			g.firstSetUp = false;
 			blink();
 
 			var span = $(myPostButton).parent()[0];
 			$(span).attr('id', 'btn-my-post');
 		}
-	}
-
-	function clearData() {
-		var keys = [
-			lastPullTimeKey,
-			unACKTimeKey,
-			unACKDataKey,
-			mappingKey
-		];
-		keys.forEach(function (k) {
-			GM_setValue(k, null);
-		});
 	}
 
 	function log_debug(sl) {
