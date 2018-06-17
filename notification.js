@@ -17,7 +17,7 @@
 
 	// Your code here...
 
-	var lastUpdateMappingTimeKey = 'lastUpdateMappingTime';
+	var lastPullTimeKey = 'lastPullTimeKey';
 	var unACKTimeKey = 'lastUnACKTime';
 	var unACKDataKey = 'unACKData';
 	var mappingKey = 'tidCommentMap';
@@ -41,7 +41,7 @@
 
 	var originalTitle = document.title;
 
-	var lastPullTime = GM_getValue(lastUpdateMappingTimeKey);
+	var lastPullTime = GM_getValue(lastPullTimeKey);
 	// 第一次在用户机器上运行
 	if (!lastPullTime) {
 		getPostStatus(true);
@@ -88,7 +88,7 @@
 
 		function timeCheck() {
 			var now = Date.now();
-			var lastPullTime = GM_getValue(lastUpdateMappingTimeKey);
+			var lastPullTime = GM_getValue(lastPullTimeKey);
 			if (lastPullTime) {
 				var dtime = (now - lastPullTime);
 				console.log('距离上次拉取评论 ' + (dtime / 1000) + ' 秒');
@@ -113,7 +113,7 @@
 
 		if (needUpdate) {
 
-			GM_setValue(lastUpdateMappingTimeKey, Date.now());
+			GM_setValue(lastPullTimeKey, Date.now());
 
 			function getPostURL(debug) {
 				// if (debug) {
@@ -379,7 +379,7 @@
 
 	function clearData() {
 		var keys = [
-			lastUpdateMappingTimeKey,
+			lastPullTimeKey,
 			unACKTimeKey,
 			unACKDataKey,
 			mappingKey
