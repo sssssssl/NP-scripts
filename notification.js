@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         Notification Test
+// @name         North-Plus Notification
 // @namespace    http://tampermonkey.net/
 // @version      0.1
-// @description  try to take over the world!
+// @description  查看自己发的主题的回复
 // @author       You
-// @match        http://localhost:5000/
-// @require  https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js
+// @match        https://*.white-plus.net/*
+// @require      https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
 // ==/UserScript==
@@ -20,25 +20,23 @@
 	var unACKDataKey = 'unACKData';
 	var mappingKey = 'tidCommentMap';
 	// this needs to be tested.
-	var pullInterval = 1000 * 60 * 0.25;
+	var pullInterval = 1000 * 60 * 2;
 	var maxUnACKAge = 1000 * 10 * 1;
 	var checkInterval = 1000 * 5 * 1;
-	var maxRetry = 3;
+	var maxRetry = 5;
+
 	var debug = true;
 
 	var g = {
-		stopNofitication : false,
-		initNotification : true,
-		stopLoop : false,
-		retry : 0
+		stopNofitication: false,
+		initNotification: true,
+		stopLoop: false,
+		retry: 0,
+		checkInterval: checkInterval,
+		has_mypost_btn: false
 	};
 
 	var originalTitle = document.title;
-	// var stopLoop = false;
-	// var retry = 0;
-	// var stopNotification = true;
-	// var initNotification = true;
-
 
 	var lastPullTime = GM_getValue(lastUpdateMappingTimeKey);
 	// 第一次在用户机器上运行
@@ -51,18 +49,19 @@
 
 	function mainLoop() {
 		setTimeout(function () {
-			// 先等 5s
+			app();
 			if (!g.stopLoop) {
-				app();
 				mainLoop();
 			}
-		}, checkInterval);
+		}, g.checkInterval);
 	}
 
 	function app() {
 		var unACKData = GM_getValue(unACKDataKey);
 		if (unACKData) {
 			log_debug(['存在未合并数据', unACKData]);
+
+			g.checkInterval = checkInterval;
 
 			var lastUnACKTime = GM_getValue(unACKTimeKey);
 			var now = Date.now()
@@ -95,17 +94,25 @@
 
 		var needUpdate = timeCheck();
 
+		if (!needUpdate) {
+			g.checkInterval = g.checkInterval + 1000 * 5;
+			g.checkInterval = Math.min(g.checkInterval, 1000 * 20);
+		}
+		else {
+			g.checkInterval = checkInterval;
+		}
+
 		if (needUpdate) {
 
 			GM_setValue(lastUpdateMappingTimeKey, Date.now());
 
 			function getPostURL(debug) {
-				if (debug) {
-					return 'posts';
-				}
-				else {
-					return 'u.php?action-topic.html';
-				}
+				// if (debug) {
+				// 	return 'posts';
+				// }
+				// else {
+				return 'u.php?action-topic.html';
+				// }
 
 			}
 
@@ -147,12 +154,12 @@
 	}
 
 	function getCompareFunc(debug) {
-		if (debug) {
-			return testCompare;
-		}
-		else {
-			return compareMapping;
-		}
+		// if (debug) {
+		// 	return testCompare;
+		// }
+		// else {
+		return compareMapping;
+		// }
 	}
 
 
@@ -260,13 +267,20 @@
 	// 给【我的主题】按钮添加停止闪烁的回调函数，每个页面只要做一次就行了
 	function addStopBlinkCallback() {
 		var myPostButton = $('#infobox').find('.link5')[0];
+		if (!myPostButton) {
+			g.has_mypost_btn = false;
+			return;
+		}
+		else {
+			g.has_mypost_btn = true;
+		}
 		$(myPostButton).wrap('<span></span>');
 		var span = $(myPostButton).parent()[0];
 		addSpinEffect();
 		// enforce event capture, disable event bubbling.
 		span.addEventListener('click', function (e) {
 			var unACKData = GM_getValue(unACKDataKey);
-			if(unACKData) {
+			if (unACKData) {
 				updateMapping(unACKData);
 			}
 			g.stopNofitication = true;
@@ -288,6 +302,10 @@
 	}
 
 	function sendNotification(diffInfo) {
+
+		if (!g.has_mypost_btn) {
+			return;
+		}
 
 		log_debug([
 			'from sendNotification',
@@ -316,7 +334,7 @@
 		}
 
 		var nl = {
-			index : 0,
+			index: 0,
 		};
 
 		function blink() {
