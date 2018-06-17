@@ -23,7 +23,7 @@
 	var mappingKey = 'tidCommentMap';
 	// this needs to be tested.
 	var pullInterval = 1000 * 60 * 2;
-	var maxUnACKAge = 1000 * 10 * 1;
+	var maxUnACKAge = 1000 * 60 * 1;
 	var checkInterval = 1000 * 5 * 1;
 	var maxRetry = 5;
 
