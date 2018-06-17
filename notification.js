@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  查看自己发的主题的回复
-// @author       You
+// @author       sl
 // @match        https://*.white-plus.net/*
 // @require      https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js
 // @grant        GM_getValue
@@ -63,6 +63,7 @@
 			log_debug(['存在未合并数据', unACKData]);
 
 			g.checkInterval = checkInterval;
+			g.pullInterval = pullInterval;
 
 			var lastUnACKTime = GM_getValue(unACKTimeKey);
 			var now = Date.now()
@@ -98,13 +99,14 @@
 		if (!needUpdate) {
 			g.checkInterval = g.checkInterval + 1000 * 5;
 			g.checkInterval = Math.min(g.checkInterval, 1000 * 20);
-			g.pullInterval = g.pullInterval * 2;
-			if (g.pullInterval > 1000 * 60 * 8) {
+			g.pullInterval = g.pullInterval + 1000 * 60 * 1;
+			if (g.pullInterval > 1000 * 60 * 4) {
 				g.pullInterval = pullInterval;
 			}
 		}
 		else {
 			g.checkInterval = checkInterval;
+			g.pullInterval = pullInterval;
 		}
 
 		if (needUpdate) {
@@ -298,11 +300,16 @@
 			'animation:myfirst 2s;animation-iteration-count:infinite;}' +
 			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;' +
 			'@keyframes myfirst' +
-			'{from {color:#BBBBBB; transform: :rotate(0deg);}' +
-			'to {color:#C70039;font-weight:bold; transform:rotate(360deg);}}' +
+			'0% { transform: rotate(0deg); }'+
+			'25% { transform: rotate(45deg); }'+
+			'50% { transform: rotate(-45deg); }'+
+			'100% { transform: rotate(0deg); }'+
 			'@-webkit-keyframes myfirst' +
-			'{from {color:#BBBBBB; transform: :rotate(0deg);}' +
-			'to {color:#C70039;font-weight:bold; transform:rotate(360deg);}}</style>'
+			'0% { transform: rotate(0deg); }'+
+			'25% { transform: rotate(45deg); }'+
+			'50% { transform: rotate(-45deg); }'+
+			'100% { transform: rotate(0deg); }'+
+			'</style>'
 		);
 	}
 
