@@ -8,7 +8,6 @@
 // @require  https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
-// @grant        GM_deleteValue
 // ==/UserScript==
 
 (function () {
@@ -27,14 +26,18 @@
 	var maxRetry = 3;
 	var debug = true;
 
-
-	var stopLoop = false;
-	var retry = 0;
-
+	var g = {
+		stopNofitication : false,
+		initNotification : true,
+		stopLoop : false,
+		retry : 0
+	};
 
 	var originalTitle = document.title;
-	var stopNotification = true;
-	var initNotification = true;
+	// var stopLoop = false;
+	// var retry = 0;
+	// var stopNotification = true;
+	// var initNotification = true;
 
 
 	var lastPullTime = GM_getValue(lastUpdateMappingTimeKey);
@@ -49,7 +52,7 @@
 	function mainLoop() {
 		setTimeout(function () {
 			// 先等 5s
-			if (!stopLoop) {
+			if (!g.stopLoop) {
 				app();
 				mainLoop();
 			}
@@ -69,8 +72,8 @@
 			}
 			// 刚生成数据，提醒。
 			else {
-				stopNotification = false;
-				sendNotification(unACKData, initNotification);
+				g.stopNotification = false;
+				sendNotification(unACKData);
 			}
 		}
 		else {
@@ -122,7 +125,8 @@
 							log_debug(['写入 unACKData:', diffInfo]);
 							GM_setValue(unACKDataKey, diffInfo);
 							GM_setValue(unACKTimeKey, Date.now());
-							sendNotification(diffInfo, initNotification);
+							g.initNotification = true;
+							sendNotification(diffInfo);
 						}
 					}
 					else {
@@ -130,9 +134,9 @@
 					}
 				},
 				error: function (data) {
-					retry += 1;
-					if (retry == maxRetry) {
-						stopLoop = true;
+					g.retry += 1;
+					if (g.retry == maxRetry) {
+						g.stopLoop = true;
 						console.log('网络似乎有问题，停止拉取评论');
 					}
 					console.log(data);
@@ -258,7 +262,6 @@
 		var myPostButton = $('#infobox').find('.link5')[0];
 		$(myPostButton).wrap('<span></span>');
 		var span = $(myPostButton).parent()[0];
-		$(span).attr('id', 'btn-my-post');
 		addSpinEffect();
 		// enforce event capture, disable event bubbling.
 		span.addEventListener('click', function (e) {
@@ -266,7 +269,7 @@
 			if(unACKData) {
 				updateMapping(unACKData);
 			}
-			stopNotification = true;
+			g.stopNofitication = true;
 		}, true);
 	}
 
@@ -284,12 +287,12 @@
 		);
 	}
 
-	function sendNotification(diffInfo, initNotification) {
+	function sendNotification(diffInfo) {
 
 		log_debug([
 			'from sendNotification',
-			'stopNofitication:' + stopNotification,
-			'initNotification: ' + initNotification,
+			'stopNofitication:' + g.stopNofitication,
+			'initNotification: ' + g.initNotification,
 		]);
 
 		var nNewComment = diffInfo.nNewComment;
@@ -312,14 +315,17 @@
 			// $(myPostButton).css('font-weight', fw_list[index]);
 		}
 
-		var index = 0;
+		var nl = {
+			index : 0,
+		};
 
 		function blink() {
 			setTimeout(function () {
-				index = 1 - index;
-				updateStyle(index);
-				if (stopNotification) {
+				nl.index = 1 - nl.index;
+				updateStyle(nl.index);
+				if (g.stopNofitication) {
 					updateStyle(0);
+					$('#btn-my-post').attr('id', '');
 				}
 				else {
 					blink();
@@ -327,9 +333,15 @@
 			}, 1000);
 		};
 
-		if (initNotification) {
+		if (g.initNotification) {
+
+			g.initNotification = false;
+			g.stopNofitication = false;
 			blink();
-			initNotification = false;
+
+			var myPostButton = $('#infobox').find('.link5')[0];
+			var span = $(myPostButton).parent()[0];
+			$(span).attr('id', 'btn-my-post');
 		}
 	}
 
