@@ -5,6 +5,8 @@
 // @description  查看自己发的主题的回复
 // @author       sl
 // @match        https://*.white-plus.net/*
+// @match        https://*.south-plus.net/*
+// @match        https://*.imoutolove.me/*
 // @require      https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -370,7 +372,6 @@
 			g.stopNofitication = false;
 			blink();
 
-			var myPostButton = $('#infobox').find('.link5')[0];
 			var span = $(myPostButton).parent()[0];
 			$(span).attr('id', 'btn-my-post');
 		}
