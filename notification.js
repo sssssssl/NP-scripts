@@ -32,8 +32,9 @@
 		initNotification: true,
 		stopLoop: false,
 		retry: 0,
+		has_mypost_btn: false,
 		checkInterval: checkInterval,
-		has_mypost_btn: false
+		pullInterval: pullInterval
 	};
 
 	var originalTitle = document.title;
@@ -97,6 +98,10 @@
 		if (!needUpdate) {
 			g.checkInterval = g.checkInterval + 1000 * 5;
 			g.checkInterval = Math.min(g.checkInterval, 1000 * 20);
+			g.pullInterval = g.pullInterval * 2;
+			if (g.pullInterval > 1000 * 60 * 8) {
+				g.pullInterval = pullInterval;
+			}
 		}
 		else {
 			g.checkInterval = checkInterval;
