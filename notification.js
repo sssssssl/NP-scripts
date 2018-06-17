@@ -90,7 +90,7 @@
 				var dtime = (now - lastPullTime);
 				console.log('距离上次拉取评论 ' + (dtime / 1000) + ' 秒');
 			}
-			return !(lastPullTime && dtime < pullInterval);
+			return !(lastPullTime && dtime < g.pullInterval);
 		}
 
 		var needUpdate = timeCheck();
