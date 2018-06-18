@@ -246,69 +246,6 @@
 		]);
 	}
 
-
-	function compareMapping(data) {
-		var mapping = GM_getValue(mappingKey);
-		if (!mapping) {
-			mapping = {};
-		}
-
-		var diffInfo = {
-			nNewComment: 0,
-			diffMap: {}
-		};
-
-		var pat = /read.php\?tid-(\d+).html.+?回复:(\d+)/g;
-		var m;
-		while (m = pat.exec(data)) {
-			var tid = m[1];
-			var num = parseInt(m[2]);
-			if (!(tid in mapping) || (mapping[tid] < num)) {
-
-				diffInfo.diffMap[tid] = num;
-				// new post
-				if (!(tid in mapping)) {
-					diffInfo.nNewComment += num;
-				}
-				// old post, new comment
-				else {
-					diffInfo.nNewComment += num - mapping[tid];
-				}
-			}
-		}
-		// debug
-		if (diffInfo.nNewComment > 0) {
-			log([
-				'from compareMapping:',
-				'有 ' + diffInfo.nNewComment + ' 条新评论.',
-				diffInfo.diffMap,
-			]);
-		}
-		return diffInfo;
-	}
-
-	// function updateMapping(diffInfo) {
-	// 	var diffMap = diffInfo.diffMap;
-	// 	var mapping = GM_getValue(mappingKey);
-	// 	if (!mapping) {
-	// 		mapping = diffMap;
-	// 	}
-	// 	else {
-	// 		for (var t in diffMap) {
-	// 			mapping[t] = diffMap[t];
-	// 		}
-	// 	}
-	// 	GM_setValue(mappingKey, mapping);
-	// 	GM_setValue(unACKDataKey, null);
-	// 	GM_setValue(unACKTimeKey, null);
-
-	// 	log_debug([
-	// 		'from updateMapping',
-	// 		'写入 mapping:',
-	// 		mapping,
-	// 	]);
-	// }
-
 	function grabUserInfo() {
 		var uid = GM_getValue(uidKey);
 		if (uid) {
