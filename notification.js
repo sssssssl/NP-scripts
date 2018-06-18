@@ -244,16 +244,16 @@
 			'animation:myfirst 2s;animation-iteration-count:infinite;' +
 			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;}' +
 			'@keyframes myfirst {' +
-			'0% { transform: rotate(0deg); }'+
-			'25% { transform: rotate(45deg); }'+
-			'50% { transform: rotate(-45deg); }'+
-			'100% { transform: rotate(0deg); }}'+
+			'0% { transform: rotate(0deg) scale(1, 1);; }'+
+			'25% { transform: rotate(45deg) scale(2, 2);; }'+
+			'50% { transform: rotate(-45deg) scale(2, 2);; }'+
+			'100% { transform: rotate(0deg) scale(1, 1);; }}'+
 			'@-webkit-keyframes myfirst {' +
-			'0% { transform: rotate(0deg); }'+
-			'25% { transform: rotate(45deg); }'+
-			'50% { transform: rotate(-45deg); }'+
-			'100% { transform: rotate(0deg); }}'+
-			'#btn-my-post > a {color:#FF00FF}' +
+			'0% { transform: rotate(0deg) scale(1, 1);; }'+
+			'25% { transform: rotate(45deg) scale(2, 2);; }'+
+			'50% { transform: rotate(-45deg) scale(2, 2);; }'+
+			'100% { transform: rotate(0deg) scale(1, 1);; }}'+
+			'#btn-my-post > a {color:#FF0000}' +
 			'</style>'
 		);
 	}
