@@ -48,6 +48,7 @@
 	}
 
 	addStopBlinkCallback();
+	addSelfCommentCallback();
 	mainLoop();
 
 	function mainLoop() {
@@ -236,6 +237,31 @@
 			}
 			g.stopNofitication = true;
 		}, true);
+	}
+
+	// 自己发的评论不会导致回复数增加
+	function addSelfCommentCallback() {
+		var form = $('form[name=FORM]');
+		if(!form) {
+			console.log('no form, no worries.');
+			return;
+		}
+		$(form).on('submit', function() {
+			var tid = $('form > input[name=tid]').attr('value');
+			console.log(`tid: ${tid}`);
+			var mapping = GM_getValue(mappingKey);
+			if(!mapping) {
+				mapping = {};
+			}
+			if(!(tid in mapping)) {
+				mapping[tid] = 1;
+			}
+			else {
+				mapping[tid] += 1;
+			}
+			GM_setValue(mappingKey, mapping);
+			console.log('self comment done.')
+		});
 	}
 
 	function addSpinEffect() {
