@@ -341,13 +341,13 @@
 			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;}' +
 			'@keyframes myfirst {' +
 			'0% { transform: rotate(0deg) scale(1, 1);; }' +
-			'25% { transform: rotate(45deg) scale(1.5, 1.5);; }' +
-			'50% { transform: rotate(-45deg) scale(1.5, 1.5);; }' +
+			'25% { transform: rotate(30deg) scale(1.5, 1.5);; }' +
+			'50% { transform: rotate(-30deg) scale(1.5, 1.5);; }' +
 			'100% { transform: rotate(0deg) scale(1, 1);; }}' +
 			'@-webkit-keyframes myfirst {' +
 			'0% { transform: rotate(0deg) scale(1, 1);; }' +
-			'25% { transform: rotate(45deg) scale(1.5, 1.5);; }' +
-			'50% { transform: rotate(-45deg) scale(1.5, 1.5);; }' +
+			'25% { transform: rotate(30deg) scale(1.5, 1.5);; }' +
+			'50% { transform: rotate(-30deg) scale(1.5, 1.5);; }' +
 			'100% { transform: rotate(0deg) scale(1, 1);; }}' +
 			'#btn-my-post > a {color:#FF0000}' +
 			'</style>'
