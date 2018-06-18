@@ -30,17 +30,23 @@
 
 	// 2. GLOBAL STATE
 
-	var debug = true;
+	var logLevels = {
+		verbose: 1,
+		silent: 2
+	};
+
+	var dev = false;
 
 	var g = {
 		url: window.location.href,
 		stopNofitication: false,
-		firstSetUp: true,
+		unInitialized: true,
 		stopLoop: false,
 		retry: 0,
 		has_mypost_btn: false,
 		checkInterval: checkInterval,
-		pullInterval: pullInterval
+		pullInterval: pullInterval,
+		logLevel : logLevels.verbose
 	};
 
 	var originalTitle = document.title;
@@ -70,21 +76,20 @@
 	function app() {
 		var unACKData = GM_getValue(unACKDataKey);
 		if (unACKData) {
-			log_debug(['存在未合并数据', unACKData]);
+			log(['存在未合并数据', unACKData]);
 
 			g.stopNotification = false;
 			sendNotification(unACKData);
 
-			var lastUnACKTime = GM_getValue(unACKTimeKey);
-			var now = Date.now()
-			// 当未确认数据寿命达到允许的最大值，进行合并
-			if (lastUnACKTime && (now - lastUnACKTime) > maxUnACKAge) {
-				updateMapping(unACKData);
-			}
+			// var lastUnACKTime = GM_getValue(unACKTimeKey);
+			// var now = Date.now()
+			// // 当未确认数据寿命达到允许的最大值，进行合并
+			// if (lastUnACKTime && (now - lastUnACKTime) > maxUnACKAge) {
+			// 	updateMapping(unACKData);
+			// }
 		}
-		else {
-			getPostStatus(false);
-		}
+
+		getPostStatus(false);
 	}
 
 	function getPostStatus(first = false) {
@@ -94,7 +99,7 @@
 			var lastPullTime = GM_getValue(lastPullTimeKey);
 			if (lastPullTime) {
 				var dtime = (now - lastPullTime);
-				log_debug('距离上次拉取评论 ' + (dtime / 1000) + ' 秒');
+				log('距离上次拉取评论 ' + (dtime / 1000) + ' 秒');
 			}
 			return !(lastPullTime && dtime < g.pullInterval);
 		}
@@ -108,6 +113,7 @@
 			if (g.pullInterval > 1000 * 60 * 4) {
 				g.pullInterval = pullInterval;
 			}
+			return;
 		}
 		else {
 			g.checkInterval = checkInterval;
@@ -116,33 +122,33 @@
 
 		if (needUpdate) {
 
-			GM_setValue(lastPullTimeKey, Date.now());
-
-			function getPostURL(debug) {
-				return 'u.php?action-topic.html';
-			}
-
-			var myPostURL = getPostURL(debug);
+			var myPostURL = getPostURL(dev);
 
 			$.ajax({
 				url: myPostURL,
 				type: 'GET',
 				success: function (data) {
-					var diffInfo = compareMapping(data);
+
+					// 调用返回后才更新 lastPullTime, 增加访问服务器的时间间隔
+					GM_setValue(lastPullTimeKey, Date.now());
+
+					var newMap = getParser(dev)(data);
+					var mapping = getMapping();
+					var diffInfo = compareMap(mapping, newMap);
 					if (diffInfo.nNewComment > 0) {
 						if (first) {
-							log_debug('首次执行.');
-							updateMapping(diffInfo);
+							log('首次执行.');
+							updateMapping(diffInfo.diffMap);
 						}
 						else {
-							log_debug(['写入 unACKData:', diffInfo]);
+							log(['写入 unACKData:', diffInfo]);
 							GM_setValue(unACKDataKey, diffInfo);
 							GM_setValue(unACKTimeKey, Date.now());
 							sendNotification(diffInfo);
 						}
 					}
 					else {
-						log_debug('评论数量没有变化.');
+						log('评论数量没有变化.');
 					}
 				},
 				error: function (data) {
@@ -161,7 +167,86 @@
 
 	// 4. DATA PROCESSING
 
+	function getPostURL(lv) {
+		if (lv) {
+			return 'posts';
+		}
+		return 'u.php?action-topic.html';
+	}
+
+	function getParser(lv) {
+		if (lv) {
+			return JSON.parse;
+		}
+		return parseData;
+	}
+
 	// 比较拉取到的评论数与本地保存的评论数的区别
+	function parseData(data) {
+		var dataMap = {};
+		var pat = /read.php\?tid-(\d+).html.+?回复:(\d+)/g;
+		var m;
+		while (m = pat.exec(data)) {
+			var tid = m[1];
+			var num = parseInt(m[2]);
+			dataMap[tid] = num;
+		}
+		return dataMap;
+	}
+
+	function compareMap(baseMap, newMap) {
+		var diffInfo = {
+			nNewComment: 0,
+			diffMap: {},
+		};
+		for (var key in newMap) {
+			diffInfo.diffMap[key] = newMap[key];
+			if (!(key in baseMap)) {
+				diffInfo.nNewComment += newMap[key];
+			}
+			else {
+				diffInfo.nNewComment += newMap[key] - baseMap[key];
+			}
+		}
+		return diffInfo;
+		// debug
+		if (diffInfo.nNewComment > 0) {
+			log([
+				'from compareMapp:',
+				'有 ' + diffInfo.nNewComment + ' 条新评论.',
+				diffInfo.diffMap,
+			]);
+		}
+	}
+
+	function mergeMap(baseMap, diffMap) {
+		for (var key in diffMap) {
+			baseMap[key] = diffMap[key];
+		}
+	}
+
+	function getMapping() {
+		var mapping = GM_getValue(mappingKey);
+		if (!mapping) {
+			mapping = {};
+		}
+		return mapping;
+	}
+
+	function updateMapping(diffMap) {
+		var mapping = getMapping();
+		mergeMap(mapping, diffMap);
+		GM_setValue(mappingKey, mapping);
+		GM_setValue(unACKDataKey, null);
+		GM_setValue(unACKTimeKey, null);
+		log([
+			'from updateMapping',
+			'写入 mapping:',
+			mapping,
+		]);
+	}
+
+
 	function compareMapping(data) {
 		var mapping = GM_getValue(mappingKey);
 		if (!mapping) {
@@ -193,7 +278,7 @@
 		}
 		// debug
 		if (diffInfo.nNewComment > 0) {
-			log_debug([
+			log([
 				'from compareMapping:',
 				'有 ' + diffInfo.nNewComment + ' 条新评论.',
 				diffInfo.diffMap,
@@ -202,27 +287,27 @@
 		return diffInfo;
 	}
 
-	function updateMapping(diffInfo) {
-		var diffMap = diffInfo.diffMap;
-		var mapping = GM_getValue(mappingKey);
-		if (!mapping) {
-			mapping = diffMap;
-		}
-		else {
-			for (var t in diffMap) {
-				mapping[t] = diffMap[t];
-			}
-		}
-		GM_setValue(mappingKey, mapping);
-		GM_setValue(unACKDataKey, null);
-		GM_setValue(unACKTimeKey, null);
+	// function updateMapping(diffInfo) {
+	// 	var diffMap = diffInfo.diffMap;
+	// 	var mapping = GM_getValue(mappingKey);
+	// 	if (!mapping) {
+	// 		mapping = diffMap;
+	// 	}
+	// 	else {
+	// 		for (var t in diffMap) {
+	// 			mapping[t] = diffMap[t];
+	// 		}
+	// 	}
+	// 	GM_setValue(mappingKey, mapping);
+	// 	GM_setValue(unACKDataKey, null);
+	// 	GM_setValue(unACKTimeKey, null);
 
-		log_debug([
-			'from updateMapping',
-			'写入 mapping:',
-			mapping,
-		]);
-	}
+	// 	log_debug([
+	// 		'from updateMapping',
+	// 		'写入 mapping:',
+	// 		mapping,
+	// 	]);
+	// }
 
 	function grabUserInfo() {
 		var uid = GM_getValue(uidKey);
@@ -230,10 +315,10 @@
 			g.uid = uid;
 			return;
 		}
-		log_debug('try to get uid from page...');
+		log('try to get uid from page...');
 		var userInfo = $('span.user-infoWraptwo');
 		if (!userInfo) {
-			log_debug('no userinfo span, unable to get uid.');
+			log('no userinfo span, unable to get uid.');
 			return;
 		}
 		var userData = $(userInfo).text();
@@ -241,7 +326,7 @@
 		var m = uidPat.exec(userData);
 		if (m && m.length) {
 			uid = m[1];
-			log_debug(`got uid: ${uid}.`);
+			log(`got uid: ${uid}.`);
 			g.uid = uid;
 			GM_setValue(uidKey, uid);
 		}
@@ -251,20 +336,20 @@
 	function addSelfCommentCallback() {
 		var form = $('form[name=FORM]');
 		if (!form) {
-			log_debug('no form, no worries.');
+			log('no form, no worries.');
 			return;
 		}
 		var modifyPat = /post.php\?action-modify/;
 		// 编辑回复页面，不增加回复数
 		if (modifyPat.test(g.url)) {
-			log_debug('modify page...');
+			log('modify page...');
 			return;
 		}
 		$(form).on('submit', function () {
 			var tid = $('form > input[name=tid]').attr('value');
-			log_debug(`tid: ${tid}`);
+			log(`tid: ${tid}`);
 			if (!tid) {
-				log_debug('发帖页面，不是评论，无 tid');
+				log('发帖页面，不是评论，无 tid');
 				return;
 			}
 			// 评论
@@ -275,12 +360,12 @@
 			// 可能是自己刚刚发的帖子，也可能是别人的帖子
 			// 给刚刚发的帖子评论就无视掉好了
 			if (!(tid in mapping)) {
-				log_debug(`对 tid=${tid} 的帖子评论.`);
+				log(`对 tid=${tid} 的帖子评论.`);
 			}
 			else {
 				mapping[tid] += 1;
 				GM_setValue(mappingKey, mapping);
-				log_debug('回复自己的帖子.')
+				log('回复自己的帖子.')
 			}
 		});
 	}
@@ -306,7 +391,7 @@
 		span.addEventListener('click', function (e) {
 			var unACKData = GM_getValue(unACKDataKey);
 			if (unACKData) {
-				updateMapping(unACKData);
+				updateMapping(unACKData.diffMap);
 			}
 			g.stopNofitication = true;
 		}, true);
@@ -338,10 +423,10 @@
 			return;
 		}
 
-		log_debug([
+		log([
 			'from sendNotification',
 			'stopNofitication:' + g.stopNofitication,
-			'firstSetUp: ' + g.firstSetUp,
+			'unInitialized: ' + g.unInitialized,
 		]);
 
 		var nNewComment = diffInfo.nNewComment;
@@ -354,21 +439,24 @@
 		var title_list = [originalTitle, title_blk];
 		var fw_list = ['normal', 'bold'];
 
+		g.style = {
+			title_list : title_list,
+			fw_list : fw_list,
+			index : 0
+		};
+
 		var myPostButton = $('#infobox').find('.link5')[0];
 		$(myPostButton).text(`我的主题( ${nNewComment} 条新回复)`);
 
 		function updateStyle(index) {
-			document.title = title_list[index];
+			document.title = g.style.title_list[index];
 		}
 
-		var nl = {
-			index: 0,
-		};
 
 		function blink() {
 			setTimeout(function () {
-				nl.index = 1 - nl.index;
-				updateStyle(nl.index);
+				g.style.index = 1 - g.style.index;
+				updateStyle(g.style.index);
 				if (g.stopNofitication) {
 					updateStyle(0);
 					$('#btn-my-post').attr('id', '');
@@ -379,9 +467,9 @@
 			}, 1000);
 		};
 
-		if (g.firstSetUp) {
+		if (g.unInitialized) {
 
-			g.firstSetUp = false;
+			g.unInitialized = false;
 			blink();
 
 			var span = $(myPostButton).parent()[0];
@@ -389,15 +477,15 @@
 		}
 	}
 
-	function log_debug(sl) {
-		if (debug) {
-			if (sl.constructor === String) {
-				console.log(sl);
-			}
-			else if (sl.constructor === Array) {
+	function log(sl, lv = g.logLevel) {
+		if (lv == logLevels.verbose) {
+			if (sl.constructor === Array) {
 				sl.forEach(function (s) {
 					console.log(s);
 				});
+			}
+			else {
+				console.log(sl);
 			}
 		}
 	}
