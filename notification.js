@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         North-Plus Notification
-// @namespace    https://github.com/sssssssl
+// @namespace    https://github.com/sssssssl/NP-scripts
 // @version      0.1
 // @description  查看自己发的主题的回复
 // @author       sl
