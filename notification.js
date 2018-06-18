@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         North-Plus Notification
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/sssssssl
 // @version      0.1
 // @description  查看自己发的主题的回复
 // @author       sl
