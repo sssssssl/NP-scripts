@@ -15,17 +15,20 @@
 (function () {
 	'use strict';
 
-	// Your code here...
+	// 1. CONSTANTS
 
 	var lastPullTimeKey = 'lastPullTime';
 	var unACKTimeKey = 'lastUnACKTime';
 	var unACKDataKey = 'unACKData';
 	var mappingKey = 'tidCommentMap';
+	var uidKey = 'uid';
 	// this needs to be tested.
 	var pullInterval = 1000 * 60 * 2;
 	var maxUnACKAge = 1000 * 60 * 1;
 	var checkInterval = 1000 * 5 * 1;
 	var maxRetry = 5;
+
+	// 2. GLOBAL STATE
 
 	var debug = true;
 
@@ -41,12 +44,15 @@
 
 	var originalTitle = document.title;
 
+	// 3. CODE ENTRYPOINT
+
 	var lastPullTime = GM_getValue(lastPullTimeKey);
 	// 第一次在用户机器上运行
 	if (!lastPullTime) {
 		getPostStatus(true);
 	}
 
+	grabUserInfo();
 	addStopBlinkCallback();
 	addSelfCommentCallback();
 	mainLoop();
@@ -152,6 +158,8 @@
 	}
 
 
+	// 4. DATA PROCESSING
+
 	// 比较拉取到的评论数与本地保存的评论数的区别
 	function compareMapping(data) {
 		var mapping = GM_getValue(mappingKey);
@@ -215,6 +223,67 @@
 		]);
 	}
 
+	function grabUserInfo() {
+		var uid = GM_getValue(uidKey);
+		if(uid) {
+			g.uid = uid;
+			return;
+		}
+		console.log('try to get uid from page...');
+		var userInfo = $('span.user-infoWraptwo');
+		if(!userInfo) {
+			console.log('no userinfo span, unable to get uid.');
+			return;
+		}
+		var userData = $(userInfo).text();
+		var uidPat =  /UID:\s(\d+)/;
+		var m = uidPat.exec(userData);
+		if(m && m.length) {
+			uid = m[1];
+			console.log(`got uid: ${uid}.`);
+			g.uid = uid;
+			GM_setValue(uidKey, uid);
+		}
+	}
+
+	// 自己发的评论不会导致回复数增加
+	function addSelfCommentCallback() {
+		var form = $('form[name=FORM]');
+		if(!form) {
+			console.log('no form, no worries.');
+			return;
+		}
+		$(form).on('submit', function() {
+			var tid = $('form > input[name=tid]').attr('value');
+			console.log(`tid: ${tid}`);
+			if(!tid) {
+				console.log('发帖页面，不是评论，无 tid');
+				return;
+			}
+			// 评论
+			var mapping = GM_getValue(mappingKey);
+			if(!mapping) {
+				mapping = {};
+			}
+			// 可能是自己刚刚发的帖子，也可能是别人的帖子
+			// 给刚刚发的帖子评论就无视掉好了
+			if(!(tid in mapping)) {
+				// var newTidList = GM_getValue(newTIdListKey, []);
+				// newTidList.push(tid);
+				// GM_setValue(newTIdListKey, newTidList);
+				console.log(`对 tid=${tid} 的帖子评论.`);
+			}
+			else {
+				mapping[tid] += 1;
+				GM_setValue(mappingKey, mapping);
+				console.log('回复自己的帖子.')
+			}
+		});
+	}
+
+
+	// 5. UI
+
 	// 给【我的主题】按钮添加停止闪烁的回调函数，每个页面只要做一次就行了
 	function addStopBlinkCallback() {
 		var myPostButton = $('#infobox').find('.link5')[0];
@@ -239,31 +308,6 @@
 		}, true);
 	}
 
-	// 自己发的评论不会导致回复数增加
-	function addSelfCommentCallback() {
-		var form = $('form[name=FORM]');
-		if(!form) {
-			console.log('no form, no worries.');
-			return;
-		}
-		$(form).on('submit', function() {
-			var tid = $('form > input[name=tid]').attr('value');
-			console.log(`tid: ${tid}`);
-			var mapping = GM_getValue(mappingKey);
-			if(!mapping) {
-				mapping = {};
-			}
-			if(!(tid in mapping)) {
-				mapping[tid] = 1;
-			}
-			else {
-				mapping[tid] += 1;
-			}
-			GM_setValue(mappingKey, mapping);
-			console.log('self comment done.')
-		});
-	}
-
 	function addSpinEffect() {
 		$('head').append('<style>#btn-my-post ' +
 			'{display: inline-block; font-weight:bold;' +
@@ -271,13 +315,13 @@
 			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;}' +
 			'@keyframes myfirst {' +
 			'0% { transform: rotate(0deg) scale(1, 1);; }'+
-			'25% { transform: rotate(45deg) scale(2, 2);; }'+
-			'50% { transform: rotate(-45deg) scale(2, 2);; }'+
+			'25% { transform: rotate(45deg) scale(1.5, 1.5);; }'+
+			'50% { transform: rotate(-45deg) scale(1.5, 1.5);; }'+
 			'100% { transform: rotate(0deg) scale(1, 1);; }}'+
 			'@-webkit-keyframes myfirst {' +
 			'0% { transform: rotate(0deg) scale(1, 1);; }'+
-			'25% { transform: rotate(45deg) scale(2, 2);; }'+
-			'50% { transform: rotate(-45deg) scale(2, 2);; }'+
+			'25% { transform: rotate(45deg) scale(1.5, 1.5);; }'+
+			'50% { transform: rotate(-45deg) scale(1.5, 1.5);; }'+
 			'100% { transform: rotate(0deg) scale(1, 1);; }}'+
 			'#btn-my-post > a {color:#FF0000}' +
 			'</style>'
