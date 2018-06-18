@@ -337,17 +337,17 @@
 	function addSpinEffect() {
 		$('head').append('<style>#btn-my-post {' +
 			'display: inline-block; font-weight:bold;' +
-			'animation:myfirst 2s;animation-iteration-count:infinite;' +
-			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;}' +
+			'animation:myfirst 1s;animation-iteration-count:infinite;' +
+			'-webkit-animation: myfirst 1s;-webkit-animation-iteration-count: infinite;}' +
 			'@keyframes myfirst {' +
 			'0% { transform: rotate(0deg) scale(1, 1);; }' +
-			'25% { transform: rotate(30deg) scale(1.5, 1.5);; }' +
-			'50% { transform: rotate(-30deg) scale(1.5, 1.5);; }' +
+			'25% { transform: rotate(15deg) scale(1.2, 1.2);; }' +
+			'50% { transform: rotate(-15deg) scale(1.2, 1.2);; }' +
 			'100% { transform: rotate(0deg) scale(1, 1);; }}' +
 			'@-webkit-keyframes myfirst {' +
 			'0% { transform: rotate(0deg) scale(1, 1);; }' +
-			'25% { transform: rotate(30deg) scale(1.5, 1.5);; }' +
-			'50% { transform: rotate(-30deg) scale(1.5, 1.5);; }' +
+			'25% { transform: rotate(15deg) scale(1.2, 1.2);; }' +
+			'50% { transform: rotate(-15deg) scale(1.2, 1.2);; }' +
 			'100% { transform: rotate(0deg) scale(1, 1);; }}' +
 			'#btn-my-post > a {color:#FF0000}' +
 			'</style>'
