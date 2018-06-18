@@ -433,6 +433,12 @@
 		if (!nNewComment) {
 			return;
 		}
+		else if(g.nNewCommentCache && g.nNewCommentCache == nNewComment) {
+			return;
+		}
+		else {
+			g.nNewCommentCache = nNewComment;
+		}
 
 		var title_blk = `【新回复 x ${nNewComment}】${originalTitle}`;
 
