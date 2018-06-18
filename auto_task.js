@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         North-Plus Auto Task
 // @namespace    https://github.com/sssssssl
-// @version      0.3
+// @version      0.4
 // @description  自动领取和完成北+日常和周常任务
 // @author       sl
 // @match        https://*.white-plus.net
