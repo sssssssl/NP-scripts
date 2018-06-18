@@ -275,9 +275,6 @@
 			// 可能是自己刚刚发的帖子，也可能是别人的帖子
 			// 给刚刚发的帖子评论就无视掉好了
 			if (!(tid in mapping)) {
-				// var newTidList = GM_getValue(newTIdListKey, []);
-				// newTidList.push(tid);
-				// GM_setValue(newTIdListKey, newTidList);
 				log_debug(`对 tid=${tid} 的帖子评论.`);
 			}
 			else {
@@ -316,8 +313,8 @@
 	}
 
 	function addSpinEffect() {
-		$('head').append('<style>#btn-my-post ' +
-			'{display: inline-block; font-weight:bold;' +
+		$('head').append('<style>#btn-my-post {' +
+			'display: inline-block; font-weight:bold;' +
 			'animation:myfirst 2s;animation-iteration-count:infinite;' +
 			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;}' +
 			'@keyframes myfirst {' +
@@ -352,13 +349,13 @@
 			return;
 		}
 
-		var title_blk = "【新回复 x " + nNewComment + "】" + originalTitle;
+		var title_blk = `【新回复 x ${nNewComment}】${originalTitle}`;
 
 		var title_list = [originalTitle, title_blk];
 		var fw_list = ['normal', 'bold'];
 
 		var myPostButton = $('#infobox').find('.link5')[0];
-		$(myPostButton).text('我的主题( ' + nNewComment + ' 条新回复)');
+		$(myPostButton).text(`我的主题( ${nNewComment} 条新回复)`);
 
 		function updateStyle(index) {
 			document.title = title_list[index];
