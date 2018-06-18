@@ -3,7 +3,7 @@
 // @namespace    https://github.com/sssssssl
 // @version      0.1
 // @description  把这群丧尸的H头像换成安全头像，就可以在公共场合上北+啦
-// @author       You
+// @author       sl
 // @match        https://bbs.white-plus.net/read.php?tid*
 // @require      https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js
 // @grant        none
