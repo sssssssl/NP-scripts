@@ -33,6 +33,7 @@
 	var debug = true;
 
 	var g = {
+		url : window.location.href,
 		stopNofitication: false,
 		firstSetUp: true,
 		stopLoop: false,
@@ -251,6 +252,12 @@
 		var form = $('form[name=FORM]');
 		if(!form) {
 			console.log('no form, no worries.');
+			return;
+		}
+		var modifyPat = /post.php\?action-modify/;
+		// 编辑回复页面，不增加回复数
+		if(modifyPat.test(g.url)) {
+			console.log('modify page...');
 			return;
 		}
 		$(form).on('submit', function() {
