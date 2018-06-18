@@ -33,7 +33,7 @@
 	var debug = true;
 
 	var g = {
-		url : window.location.href,
+		url: window.location.href,
 		stopNofitication: false,
 		firstSetUp: true,
 		stopLoop: false,
@@ -149,9 +149,9 @@
 					g.retry += 1;
 					if (g.retry == maxRetry) {
 						g.stopLoop = true;
-						log_debug('网络似乎有问题，停止拉取评论');
+						console.log('网络似乎有问题，停止拉取评论');
 					}
-					log_debug([data]);
+					console.log([data]);
 				}
 			});
 
@@ -226,20 +226,20 @@
 
 	function grabUserInfo() {
 		var uid = GM_getValue(uidKey);
-		if(uid) {
+		if (uid) {
 			g.uid = uid;
 			return;
 		}
 		log_debug('try to get uid from page...');
 		var userInfo = $('span.user-infoWraptwo');
-		if(!userInfo) {
+		if (!userInfo) {
 			log_debug('no userinfo span, unable to get uid.');
 			return;
 		}
 		var userData = $(userInfo).text();
-		var uidPat =  /UID:\s(\d+)/;
+		var uidPat = /UID:\s(\d+)/;
 		var m = uidPat.exec(userData);
-		if(m && m.length) {
+		if (m && m.length) {
 			uid = m[1];
 			log_debug(`got uid: ${uid}.`);
 			g.uid = uid;
@@ -250,31 +250,31 @@
 	// 自己发的评论不会导致回复数增加
 	function addSelfCommentCallback() {
 		var form = $('form[name=FORM]');
-		if(!form) {
+		if (!form) {
 			log_debug('no form, no worries.');
 			return;
 		}
 		var modifyPat = /post.php\?action-modify/;
 		// 编辑回复页面，不增加回复数
-		if(modifyPat.test(g.url)) {
+		if (modifyPat.test(g.url)) {
 			log_debug('modify page...');
 			return;
 		}
-		$(form).on('submit', function() {
+		$(form).on('submit', function () {
 			var tid = $('form > input[name=tid]').attr('value');
 			log_debug(`tid: ${tid}`);
-			if(!tid) {
+			if (!tid) {
 				log_debug('发帖页面，不是评论，无 tid');
 				return;
 			}
 			// 评论
 			var mapping = GM_getValue(mappingKey);
-			if(!mapping) {
+			if (!mapping) {
 				mapping = {};
 			}
 			// 可能是自己刚刚发的帖子，也可能是别人的帖子
 			// 给刚刚发的帖子评论就无视掉好了
-			if(!(tid in mapping)) {
+			if (!(tid in mapping)) {
 				// var newTidList = GM_getValue(newTIdListKey, []);
 				// newTidList.push(tid);
 				// GM_setValue(newTIdListKey, newTidList);
@@ -321,15 +321,15 @@
 			'animation:myfirst 2s;animation-iteration-count:infinite;' +
 			'-webkit-animation: myfirst 2s;-webkit-animation-iteration-count: infinite;}' +
 			'@keyframes myfirst {' +
-			'0% { transform: rotate(0deg) scale(1, 1);; }'+
-			'25% { transform: rotate(45deg) scale(1.5, 1.5);; }'+
-			'50% { transform: rotate(-45deg) scale(1.5, 1.5);; }'+
-			'100% { transform: rotate(0deg) scale(1, 1);; }}'+
+			'0% { transform: rotate(0deg) scale(1, 1);; }' +
+			'25% { transform: rotate(45deg) scale(1.5, 1.5);; }' +
+			'50% { transform: rotate(-45deg) scale(1.5, 1.5);; }' +
+			'100% { transform: rotate(0deg) scale(1, 1);; }}' +
 			'@-webkit-keyframes myfirst {' +
-			'0% { transform: rotate(0deg) scale(1, 1);; }'+
-			'25% { transform: rotate(45deg) scale(1.5, 1.5);; }'+
-			'50% { transform: rotate(-45deg) scale(1.5, 1.5);; }'+
-			'100% { transform: rotate(0deg) scale(1, 1);; }}'+
+			'0% { transform: rotate(0deg) scale(1, 1);; }' +
+			'25% { transform: rotate(45deg) scale(1.5, 1.5);; }' +
+			'50% { transform: rotate(-45deg) scale(1.5, 1.5);; }' +
+			'100% { transform: rotate(0deg) scale(1, 1);; }}' +
 			'#btn-my-post > a {color:#FF0000}' +
 			'</style>'
 		);
