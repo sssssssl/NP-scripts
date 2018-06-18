@@ -94,7 +94,7 @@
 			var lastPullTime = GM_getValue(lastPullTimeKey);
 			if (lastPullTime) {
 				var dtime = (now - lastPullTime);
-				console.log('距离上次拉取评论 ' + (dtime / 1000) + ' 秒');
+				log_debug('距离上次拉取评论 ' + (dtime / 1000) + ' 秒');
 			}
 			return !(lastPullTime && dtime < g.pullInterval);
 		}
@@ -131,7 +131,7 @@
 					var diffInfo = compareMapping(data);
 					if (diffInfo.nNewComment > 0) {
 						if (first) {
-							console.log('首次执行.');
+							log_debug('首次执行.');
 							updateMapping(diffInfo);
 						}
 						else {
@@ -142,16 +142,16 @@
 						}
 					}
 					else {
-						console.log('评论数量没有变化.');
+						log_debug('评论数量没有变化.');
 					}
 				},
 				error: function (data) {
 					g.retry += 1;
 					if (g.retry == maxRetry) {
 						g.stopLoop = true;
-						console.log('网络似乎有问题，停止拉取评论');
+						log_debug('网络似乎有问题，停止拉取评论');
 					}
-					console.log(data);
+					log_debug([data]);
 				}
 			});
 
@@ -230,10 +230,10 @@
 			g.uid = uid;
 			return;
 		}
-		console.log('try to get uid from page...');
+		log_debug('try to get uid from page...');
 		var userInfo = $('span.user-infoWraptwo');
 		if(!userInfo) {
-			console.log('no userinfo span, unable to get uid.');
+			log_debug('no userinfo span, unable to get uid.');
 			return;
 		}
 		var userData = $(userInfo).text();
@@ -241,7 +241,7 @@
 		var m = uidPat.exec(userData);
 		if(m && m.length) {
 			uid = m[1];
-			console.log(`got uid: ${uid}.`);
+			log_debug(`got uid: ${uid}.`);
 			g.uid = uid;
 			GM_setValue(uidKey, uid);
 		}
@@ -251,20 +251,20 @@
 	function addSelfCommentCallback() {
 		var form = $('form[name=FORM]');
 		if(!form) {
-			console.log('no form, no worries.');
+			log_debug('no form, no worries.');
 			return;
 		}
 		var modifyPat = /post.php\?action-modify/;
 		// 编辑回复页面，不增加回复数
 		if(modifyPat.test(g.url)) {
-			console.log('modify page...');
+			log_debug('modify page...');
 			return;
 		}
 		$(form).on('submit', function() {
 			var tid = $('form > input[name=tid]').attr('value');
-			console.log(`tid: ${tid}`);
+			log_debug(`tid: ${tid}`);
 			if(!tid) {
-				console.log('发帖页面，不是评论，无 tid');
+				log_debug('发帖页面，不是评论，无 tid');
 				return;
 			}
 			// 评论
@@ -278,12 +278,12 @@
 				// var newTidList = GM_getValue(newTIdListKey, []);
 				// newTidList.push(tid);
 				// GM_setValue(newTIdListKey, newTidList);
-				console.log(`对 tid=${tid} 的帖子评论.`);
+				log_debug(`对 tid=${tid} 的帖子评论.`);
 			}
 			else {
 				mapping[tid] += 1;
 				GM_setValue(mappingKey, mapping);
-				console.log('回复自己的帖子.')
+				log_debug('回复自己的帖子.')
 			}
 		});
 	}
