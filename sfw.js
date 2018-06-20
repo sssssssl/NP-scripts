@@ -45,6 +45,12 @@
 
     // 2. CODE ENTRYPOINT.
 
+    Array.from(document.querySelectorAll(CLS_AVATAR)).forEach((im) => {
+        im.src = getRandomAvatar();
+        im.style.width = `150px`;
+        im.style.height = `150px`;
+    });
+
     const imgs = Array.from(document.querySelectorAll(CLS_IMG)).filter(
         (im) => {
             return (!im.src.includes('images/post'));
@@ -77,12 +83,6 @@
             }, true);
         });
     }
-
-    Array.from(document.querySelectorAll(CLS_AVATAR)).forEach((im) => {
-        im.src = getRandomAvatar();
-        im.style.width = `150px`;
-        im.style.height = `150px`;
-    });
 
     function getRandomAvatar() {
         let index = Math.floor(Math.random() * N);
