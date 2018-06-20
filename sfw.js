@@ -2,7 +2,7 @@
 // @name         North-Plus SFW
 // @namespace    https://github.com/sssssssl/NP-scripts
 // @version      0.1
-// @description  替换丧尸头像，预先屏蔽图片，公共场合也能上北+
+// @description  替换丧尸头像，屏蔽图片，公共场合也能上北+
 // @author       sl
 // @match        https://*.white-plus.net/read.php?tid*
 // @match        https://*.south-plus.net/read.php?tid*
