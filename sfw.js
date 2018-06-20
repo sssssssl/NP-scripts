@@ -4,7 +4,9 @@
 // @version      0.1
 // @description  把这群丧尸的H头像换成安全头像，就可以在公共场合上北+啦
 // @author       sl
-// @match        https://bbs.white-plus.net/read.php?tid*
+// @match        https://*.white-plus.net/read.php?tid*
+// @match        https://*.south-plus.net/read.php?tid*
+// @match        https://*.imoutolove.me/read.php?tid*
 // @grant        none
 // ==/UserScript==
 
