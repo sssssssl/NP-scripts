@@ -2,7 +2,7 @@
 // @name         North-Plus SFW
 // @namespace    https://github.com/sssssssl/NP-scripts
 // @version      0.1
-// @description  把这群丧尸的H头像换成安全头像，就可以在公共场合上北+啦
+// @description  替换丧尸头像，预先屏蔽图片，公共场合也能上北+
 // @author       sl
 // @match        https://*.white-plus.net/read.php?tid*
 // @match        https://*.south-plus.net/read.php?tid*
@@ -46,43 +46,38 @@
 
     // 2. CODE ENTRYPOINT.
 
-    Array.from(document.querySelectorAll(CLS_AVATAR)).forEach((im) => {
-        im.src = getRandomAvatar();
-        im.style.width = `150px`;
-        im.style.height = `150px`;
-    });
-
-    const imgs = Array.from(document.querySelectorAll(CLS_IMG)).filter(
+    let imgs = Array.from(document.querySelectorAll(CLS_IMG)).filter(
         (im) => {
             return (!im.src.includes('images/post'));
-        });;
+        });
 
     if (imgs) {
-
         let blockerStyleTag = document.createElement('style');
         blockerStyleTag.textContent = BLOCKER_STYLE;
         document.head.append(blockerStyleTag);
 
         imgs.forEach((im) => {
-            let blocker = document.createElement('div');
-            blocker.classList.add(CLS_IMG_BLOCKER);
-            blocker.classList.add(CLS_BLOCKER_ENABLED);
-            blocker.style.height = `${im.height}px`;
-            blocker.style.width = `${im.width}px`;
-            let wrapper = document.createElement('div');
-            im.parentElement.insertBefore(wrapper, im);
-            wrapper.append(blocker, im);
-
-            wrapper.addEventListener('click', (e) => {
-                if (blocker.style.display) {
-                    blocker.style.display = '';
-                    event.stopImmediatePropagation();
-                }
-                else {
-                    blocker.style.display = 'none';
-                }
-            }, true);
+            imgBlockerCb(im);
         });
+    }
+
+    // 设置头像
+    let avatars = Array.from(document.querySelectorAll(CLS_AVATAR));
+    avatars.forEach((im) => {
+        im.src = getRandomAvatar();
+        im.style.width = `150px`;
+        im.style.height = `150px`;
+    });
+
+    function imgBlockerCb(im) {
+        let blocker = document.createElement('div');
+        blocker.classList.add(CLS_IMG_BLOCKER);
+        blocker.classList.add(CLS_BLOCKER_ENABLED);
+        blocker.style.height = `${im.height}px`;
+        blocker.style.width = `${im.width}px`;
+        let wrapper = document.createElement('div');
+        im.parentElement.insertBefore(wrapper, im);
+        wrapper.append(blocker, im);
     }
 
     function getRandomAvatar() {
