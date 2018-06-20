@@ -44,6 +44,9 @@
         transition: opacity ${TIME_FADE_IN}s;
     }`;
 
+    const DEFAULT_BLK_W = 625;
+    const DEFAULT_BLW_H = 500;
+
     // 2. CODE ENTRYPOINT.
 
     let imgs = Array.from(document.querySelectorAll(CLS_IMG)).filter(
@@ -73,11 +76,23 @@
         let blocker = document.createElement('div');
         blocker.classList.add(CLS_IMG_BLOCKER);
         blocker.classList.add(CLS_BLOCKER_ENABLED);
-        blocker.style.height = `${im.height}px`;
-        blocker.style.width = `${im.width}px`;
+        let h = im.height ? im.height : DEFAULT_BLW_H;
+        let w = im.width ? im.width : DEFAULT_BLK_W;
+        setSize(blocker, h, w);
         let wrapper = document.createElement('div');
         im.parentElement.insertBefore(wrapper, im);
         wrapper.append(blocker, im);
+        im.addEventListener('load', () => {
+            setSize(blocker, im.height, im.width);
+        });
+        im.addEventListener('error', () =>{
+            setSize(blocker, 0, 0);
+        });
+    }
+
+    function setSize(elem, h, w) {
+        elem.style.height = `${h}px`;
+        elem.style.width = `${w}px`;
     }
 
     function getRandomAvatar() {
