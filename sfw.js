@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         North-Plus SFW Avatars
+// @name         North-Plus SFW
 // @namespace    https://github.com/sssssssl/NP-scripts
 // @version      0.2
 // @description  把这群丧尸的H头像换成安全头像，就可以在公共场合上北+啦
