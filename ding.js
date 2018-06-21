@@ -15,7 +15,7 @@
 
     const url = window.location.href;
     const THREAD_PAT = /read\.php\?tid/;
-    const POST_PAT = /post\.php\?fid-9/;
+    const POST_PAT = /post\.php\?fid-*/;
     const REPLY_PAT = /post\.php\?action-reply/;
 
     const ID_NEW_RP = 'newrp';
