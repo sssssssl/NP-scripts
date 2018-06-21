@@ -5,6 +5,8 @@
 // @description  发帖时自动勾选新回复通知按钮，增强通知显示效果
 // @author       sl
 // @match        https://*.white-plus.net/*
+// @match        https://*.south-plus.net/*
+// @match        https://*.imoutolove.me/*
 // @grant        none
 // ==/UserScript==
 
