@@ -29,7 +29,7 @@
     ];
     const N = SAFE_AVATARS.length;
 
-    const CLS_IMG = '.f14 img';
+    const CLS_IMG_LIST = ['.f14 img', '.tpc_content img'];
     const CLS_IMG_BLOCKER = 'img-blocker';
     const CLS_BLOCKER_ENABLED = 'blocker-enabled';
     const BLOCKER_STYLE = `
@@ -49,10 +49,15 @@
 
     // 2. CODE ENTRYPOINT.
 
-    let imgs = Array.from(document.querySelectorAll(CLS_IMG)).filter(
-        (im) => {
-            return (!im.src.includes('images/post'));
-        });
+    let imgs = [];
+    CLS_IMG_LIST.forEach(cls => {
+        Array.from(document.querySelectorAll(cls)).filter(
+            (im) => {
+                if(!im.src.includes('images/post')){
+                    imgs.push(im);
+                };
+            });
+    });
 
     if (imgs) {
         let blockerStyleTag = document.createElement('style');
