@@ -4,7 +4,9 @@
 // @version      0.1
 // @description  为北+提供关键词屏蔽功能
 // @author       sl
-// @match        https://bbs.white-plus.net/thread.php?fid-*
+// @match        https://*.white-plus.net/thread.php?fid-*
+// @match        https://*.south-plus.net/thread.php?fid-*
+// @match        https://*.imoutolove.me/thread.php?fid-*
 // @grant GM_setValue
 // @grant GM_getValue
 // ==/UserScript==
