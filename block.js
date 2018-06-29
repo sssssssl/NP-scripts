@@ -207,6 +207,9 @@
         blockModeEnabled = !blockModeEnabled;
         btnBlockSwitch.textContent = blockModeEnabled ? '开' : '关';
         GM_setValue(STORE_BLOCK_MODE_KEY, blockModeEnabled);
+        if(blockModeEnabled) {
+            parseThreadTitle(blockWords);
+        }
     };
 
     btnAddWord.onclick = () => {
@@ -218,6 +221,9 @@
         blockWords.push(word);
         GM_setValue(STORE_BLOCK_WORDS_KEY, blockWords);
         renderBlockWord(word);
+        if(blockModeEnabled) {
+            parseThreadTitle([word]);
+        }
     }
 
     btnBlockSwitch.textContent = blockModeEnabled ? '开' : '关';
@@ -229,15 +235,15 @@
     blockWords.forEach(renderBlockWord);
 
     if(blockModeEnabled) {
-        parseThreadTitle();
+        parseThreadTitle(blockWords);
     }
 
-    function parseThreadTitle() {
+    function parseThreadTitle(wordList) {
         let titleList = [];
         let threads = document.querySelectorAll('.tr3.t_one');
         threads.forEach((elem) => {
             let title = elem.querySelector('h3 a').textContent;
-            blockWords.forEach(word => {
+            wordList.forEach(word => {
                 if(title.includes(word)) {
                     elem.remove();
                 }
