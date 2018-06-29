@@ -227,8 +227,7 @@
     blockWords.forEach(renderBlockWord);
 
     if(blockModeEnabled) {
-        let titleList = parseThreadTitle();
-
+        parseThreadTitle();
     }
 
     function parseThreadTitle() {
