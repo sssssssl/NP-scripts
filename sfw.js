@@ -15,7 +15,7 @@
 
     // 1. CONSTANTS.
 
-    const TIME_FADE_IN = 5;
+    const TIME_FADE_IN = 2;
     const TIME_FADE_OUT = 0.5;
 
     const CLS_AVATAR = 'img.pic';
@@ -29,7 +29,7 @@
     ];
     const N = SAFE_AVATARS.length;
 
-    const CLS_IMG_LIST = ['.f14 img', '.tpc_content img'];
+    const CLS_IMG_LIST = ['.tpc_content img'];
     const CLS_IMG_BLOCKER = 'img-blocker';
     const CLS_BLOCKER_ENABLED = 'blocker-enabled';
     const BLOCKER_STYLE = `
