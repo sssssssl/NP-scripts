@@ -33,14 +33,21 @@
     const CLS_LIST_FOLD = 'np-list-fold';
     const CLS_LIST_ITEM = 'block-list-item';
 
+    const CLS_FADEIN = 'np-fadein';
+    const CLS_FADEOUT = 'np-fadeout';
+    const TIME_FADE = 1;
+
+    const CLS_THREAD = '.tr3.t_one';
+    const CLS_THREAD_TITLE = 'h3 a';
+
     const NP_BLOCK_HTML = `
-        <div id="np-block">
-            <div id="np-block-header" class="np-fixed-height">
+        <div id="np-block" class="${CLS_FADEIN} np-fixed-height">
+            <div id="np-block-header">
                 <span>屏蔽模式</span>
                 <span id="${ID_BTN_BLOCK_SWITCH}" class="${CLS_MODE_DISABLED} np-clickable">关</span>
             </div>
-            <div id="${ID_BTN_SHOW_LIST}" class="${CLS_MODE_DISABLED} np-clickable np-fixed-height">屏蔽列表</div>
-            <div id="${ID_NP_BLOCK_LIST_CONTAINER}" class="${CLS_LIST_FOLD} np-fixed-height">
+            <div id="${ID_BTN_SHOW_LIST}" class="${CLS_MODE_DISABLED} np-clickable">屏蔽列表</div>
+            <div id="${ID_NP_BLOCK_LIST_CONTAINER}" class="${CLS_LIST_FOLD}">
                 <div id="${ID_NP_BLOCK_LIST}"> 
                 </div>
                 <div id="np-block-list-add" class="block-list-item">
@@ -59,6 +66,48 @@
             top: 10px;
             right: 10px;
             background-color: rgb(234, 237, 237);
+        }
+
+        .${CLS_FADEIN} {
+            -ms-animation: fadein ${TIME_FADE}s;
+            -webkit-animation: fadein ${TIME_FADE}s;
+            animation fadein ${TIME_FADE}s;
+        }
+
+        @keyframes fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        @-webkit-keyframes fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        @-ms-keyframes fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .${CLS_FADEOUT} {
+            -ms-animation: fadeout ${TIME_FADE}s;
+            -webkit-animation: fadeout ${TIME_FADE}s;
+            animation fadeout ${TIME_FADE}s;     
+        }
+
+        @keyframes fadeout {
+            from { opacity: 1; }
+            to   { opacity: 0; }
+        }
+
+        @-webkit-keyframes fadeout {
+            from { opacity: 1; }
+            to   { opacity: 0; }
+        }
+
+        @-ms-keyframes fadeout {
+            from { opacity: 1; }
+            to   { opacity: 0; }
         }
 
         #np-block > * {
@@ -186,7 +235,7 @@
     if(!blockWords) {
         blockWords = [];
     }
-    console.log(`block words: ${blockWords}`);
+    let hiddenThreads = [];
 
     // add panel & register callbacks.
     document.head.insertAdjacentHTML('beforeend', NP_BLOCK_STYLE);
@@ -214,6 +263,16 @@
         GM_setValue(STORE_BLOCK_MODE_KEY, blockModeEnabled);
         if(blockModeEnabled) {
             parseThreadTitle(blockWords);
+        }
+        else {
+            let i = hiddenThreads.length;
+            while (i > 0) {
+                let elem = hiddenThreads.pop();
+                elem.style.display = 'table-row';
+                elem.classList.remove(CLS_FADEOUT);
+                elem.classList.add(CLS_FADEIN);
+                i -= 1;
+            }
         }
     };
 
@@ -245,12 +304,17 @@
 
     function parseThreadTitle(wordList) {
         let titleList = [];
-        let threads = document.querySelectorAll('.tr3.t_one');
+        let threads = document.querySelectorAll(CLS_THREAD);
         threads.forEach((elem) => {
-            let title = elem.querySelector('h3 a').textContent;
+            let title = elem.querySelector(CLS_THREAD_TITLE).textContent;
             wordList.forEach(word => {
                 if(title.includes(word)) {
-                    elem.remove();
+                    hiddenThreads.push(elem);
+                    elem.classList.remove(CLS_FADEIN);
+                    elem.classList.add(CLS_FADEOUT);
+                    setTimeout(() => {
+                        elem.style.display = 'none';
+                    }, TIME_FADE*1000);
                 }
             });
         });
