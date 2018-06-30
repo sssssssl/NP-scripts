@@ -35,16 +35,16 @@
 
     const NP_BLOCK_HTML = `
         <div id="np-block">
-            <div id="np-block-header">
+            <div id="np-block-header" class="np-fixed-height">
                 <span>屏蔽模式</span>
                 <span id="${ID_BTN_BLOCK_SWITCH}" class="${CLS_MODE_DISABLED} np-clickable">关</span>
             </div>
-            <div id="${ID_BTN_SHOW_LIST}" class="${CLS_MODE_DISABLED} np-clickable">屏蔽列表</div>
-            <div id="${ID_NP_BLOCK_LIST_CONTAINER}" class="${CLS_LIST_FOLD}">
+            <div id="${ID_BTN_SHOW_LIST}" class="${CLS_MODE_DISABLED} np-clickable np-fixed-height">屏蔽列表</div>
+            <div id="${ID_NP_BLOCK_LIST_CONTAINER}" class="${CLS_LIST_FOLD} np-fixed-height">
                 <div id="${ID_NP_BLOCK_LIST}"> 
                 </div>
                 <div id="np-block-list-add" class="block-list-item">
-                    <input id="np-block-list-add-input" type="text">
+                    <input id="np-block-list-add-input" class="np-fixed-height" type="text">
                     <span id="np-block-list-add-btn" class="np-clickable">加</span>
                 </div>
             </div>
@@ -67,6 +67,11 @@
             margin-right: auto;
             text-align: center;
             margin-top: 5px;
+        }
+
+        .np-fixed-height {
+            line-height: 22px;
+            vertical-align: middle;
         }
         
         #${ID_BTN_BLOCK_SWITCH} {
