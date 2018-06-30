@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         North-Plus Block
 // @namespace    https://github.com/sssssssl/NP-Scripts
-// @version      0.1
+// @version      0.2
 // @description  为北+提供关键词屏蔽功能
 // @author       sl
 // @match        https://*.white-plus.net/thread.php?fid-*
