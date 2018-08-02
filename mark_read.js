@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         NorthPlus-MarkRead
+// @name         North-Plus MarkRead
 // @namespace    https://github.com/sssssssl
 // @version      0.1
 // @description  Mark read thread.
